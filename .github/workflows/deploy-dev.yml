@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - dev
-      
+
 permissions:
   id-token: write
   contents: read
@@ -34,14 +34,16 @@ jobs:
       run: terraform init
       working-directory: ./dev  # Adjust to your directory
 
-    - name: Debug State List
-      run: cat state_list.txt
+    - name: List Terraform State
+      run: |
+        terraform state list || echo "No state found"
       working-directory: ./dev  # Adjust to your directory
 
     - name: Check for Existing Resources
       id: check_resources
       run: |
-        terraform state list > state_list.txt
+        terraform state list > state_list.txt || touch state_list.txt
+        cat state_list.txt
         grep 'module.network.azurerm_virtual_network.main' state_list.txt || echo "missing" >> missing_resources.txt
         grep 'module.network.azurerm_network_security_group.main' state_list.txt || echo "missing" >> missing_resources.txt
         grep 'module.backend_compute.azurerm_public_ip.public_ip' state_list.txt || echo "missing" >> missing_resources.txt
