@@ -3,7 +3,7 @@ name: Deploy Development Infrastructure
 on:
   push:
     branches:
-      - develop
+      - dev
 
 jobs:
   terraform:
