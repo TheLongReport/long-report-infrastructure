@@ -28,7 +28,7 @@ jobs:
       run: terraform init
       working-directory: ./dev  # Adjust to your directory
 
-      - name: Check for Existing Resources
+    - name: Check for Existing Resources
       id: check_resources
       run: |
         terraform state list > state_list.txt
