@@ -21,7 +21,9 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        
     - name: Terraform Init
       run: terraform init
       working-directory: ./prod 
@@ -35,6 +37,9 @@ jobs:
         grep 'module.backend_compute.azurerm_public_ip.public_ip' state_list.txt || echo "missing" >> missing_resources.txt
         grep 'module.cms_compute.azurerm_public_ip.public_ip' state_list.txt || echo "missing" >> missing_resources.txt
         grep 'module.frontend_compute.azurerm_public_ip.public_ip' state_list.txt || echo "missing" >> missing_resources.txt
+        grep 'module.backend_compute.azurerm_virtual_machine.vm' state_list.txt || echo "missing" >> missing_resources.txt
+        grep 'module.cms_compute.azurerm_virtual_machine.vm' state_list.txt || echo "missing" >> missing_resources.txt
+        grep 'module.frontend_compute.azurerm_virtual_machine.vm' state_list.txt || echo "missing" >> missing_resources.txt
       working-directory: ./prod
 
     - name: Trigger Import Workflow
