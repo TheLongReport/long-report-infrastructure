@@ -21,29 +21,44 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        
+        client-id: ${{ secrets.ARM_CLIENT_ID }}
+        tenant-id: ${{ secrets.ARM_TENANT_ID }}
+
     - name: Terraform Init
       run: terraform init
-      working-directory: ./prod 
+      working-directory: ./prod  # Adjust to your directory
 
     - name: Check for Existing Resources
       id: check_resources
       run: |
         terraform state list > state_list.txt
-        grep 'module.network.azurerm_virtual_network.main' state_list.txt || echo "missing" > missing_resources.txt
-        grep 'module.network.azurerm_network_security_group.main' state_list.txt || echo "missing" >> missing_resources.txt
-        grep 'module.backend_compute.azurerm_public_ip.public_ip' state_list.txt || echo "missing" >> missing_resources.txt
-        grep 'module.cms_compute.azurerm_public_ip.public_ip' state_list.txt || echo "missing" >> missing_resources.txt
-        grep 'module.frontend_compute.azurerm_public_ip.public_ip' state_list.txt || echo "missing" >> missing_resources.txt
-        grep 'module.backend_compute.azurerm_virtual_machine.vm' state_list.txt || echo "missing" >> missing_resources.txt
-        grep 'module.cms_compute.azurerm_virtual_machine.vm' state_list.txt || echo "missing" >> missing_resources.txt
-        grep 'module.frontend_compute.azurerm_virtual_machine.vm' state_list.txt || echo "missing" >> missing_resources.txt
-      working-directory: ./prod
+        grep -q 'module.network.azurerm_virtual_network.main' state_list.txt || echo "vnet" >> missing_resources.txt
+        grep -q 'module.network.azurerm_network_security_group.main' state_list.txt || echo "nsg" >> missing_resources.txt
+        grep -q 'module.backend_compute.azurerm_public_ip.public_ip' state_list.txt || echo "backend_public_ip" >> missing_resources.txt
+        grep -q 'module.cms_compute.azurerm_public_ip.public_ip' state_list.txt || echo "cms_public_ip" >> missing_resources.txt
+        grep -q 'module.frontend_compute.azurerm_public_ip.public_ip' state_list.txt || echo "frontend_public_ip" >> missing_resources.txt
+        grep -q 'module.backend_compute.azurerm_virtual_machine.vm' state_list.txt || echo "backend_vm" >> missing_resources.txt
+        grep -q 'module.cms_compute.azurerm_virtual_machine.vm' state_list.txt || echo "cms_vm" >> missing_resources.txt
+        grep -q 'module.frontend_compute.azurerm_virtual_machine.vm' state_list.txt || echo "frontend_vm" >> missing_resources.txt
+        grep -q 'module.backend_compute.azurerm_network_interface.vm_nic' state_list.txt || echo "backend_nic" >> missing_resources.txt
+        grep -q 'module.cms_compute.azurerm_network_interface.vm_nic' state_list.txt || echo "cms_nic" >> missing_resources.txt
+        grep -q 'module.frontend_compute.azurerm_network_interface.vm_nic' state_list.txt || echo "frontend_nic" >> missing_resources.txt
+      working-directory: ./prod  # Adjust to your directory
+      continue-on-error: true
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+      working-directory: ./prod  # Adjust to your directory
+      env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        TF_VAR_admin_username: ${{ secrets.TF_VAR_admin_username }}
+        TF_VAR_admin_password: ${{ secrets.TF_VAR_admin_password }}
 
     - name: Trigger Import Workflow
-      if: steps.check_resources.outputs.missing
+      if: success() && steps.check_resources.outputs.missing_resources != ''
       uses: actions/github-script@v3
       with:
         script: |
@@ -54,14 +69,3 @@ jobs:
             workflow_id: 'import-resources-prod.yml',
             ref: 'main'
           })
-
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
-      working-directory: ./prod
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-        TF_VAR_admin_username: ${{ secrets.TF_VAR_admin_username }}
-        TF_VAR_admin_password: ${{ secrets.TF_VAR_admin_password }}
