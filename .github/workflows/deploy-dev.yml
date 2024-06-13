@@ -12,6 +12,9 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -64,10 +67,9 @@ jobs:
       uses: actions/github-script@v3
       with:
         script: |
-          const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/')
           github.actions.createWorkflowDispatch({
-            owner,
-            repo,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
             workflow_id: 'import-resources-dev.yml',
             ref: 'dev'
           })
