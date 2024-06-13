@@ -1,0 +1,34 @@
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+
+# Exclude Terraform lock file (if you prefer to not include it)
+# .terraform.lock.hcl
+
+# Ignore override files as they are usually used to override resources locally
+*.tfvars
+
+# Ignore sensitive data files
+*.tfvars.json
+*.tfvars.local
+
+# Ignore any other local configuration files
+terraform.tfvars
+
+# Ignore .DS_Store file on macOS
+.DS_Store
+
+# Ignore log files and other system files
+*.log
+
+# Ignore temporary files and directories
+*.swp
+*.bak
+*.tmp
+*.backup
