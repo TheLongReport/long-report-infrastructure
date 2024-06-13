@@ -26,6 +26,7 @@ module "frontend_compute" {
   admin_password      = var.admin_password
   vm_name             = "ProdLongReportFrontendVM"
   public_ip_name      = "ProdLongReportFrontendPublicIP"
+  vm_size             = "Standard_B2s"
 }
 
 module "backend_compute" {
@@ -39,6 +40,7 @@ module "backend_compute" {
   admin_password      = var.admin_password
   vm_name             = "ProdLongReportBackendVM"
   public_ip_name      = "ProdLongReportBackendPublicIP"
+  vm_size             = "Standard_B2s"
 }
 
 module "cms_compute" {
@@ -52,4 +54,5 @@ module "cms_compute" {
   admin_password      = var.admin_password
   vm_name             = "ProdLongReportCMSVM"
   public_ip_name      = "ProdLongReportCMSPublicIP"
+  vm_size             = "Standard_B2s"
 }
