@@ -18,13 +18,10 @@ module "network" {
 module "frontend_compute" {
   source = "../modules/frontend_compute"
 
-  nic_name            = "DevLongReportFrontendNIC"
+  environment         = "dev"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = module.network.subnet_id
-  public_ip_name      = "DevLongReportFrontendPublicIP"
-  vm_name             = "DevLongReportFrontendVM"
-  vm_size             = "Standard_B2s"
   admin_username      = var.admin_username
   admin_password      = var.admin_password
 }
@@ -32,13 +29,10 @@ module "frontend_compute" {
 module "backend_compute" {
   source = "../modules/backend_compute"
 
-  nic_name            = "DevLongReportBackendNIC"
+  environment         = "dev"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = module.network.subnet_id
-  public_ip_name      = "DevLongReportBackendPublicIP"
-  vm_name             = "DevLongReportBackendVM"
-  vm_size             = "Standard_B2s"
   admin_username      = var.admin_username
   admin_password      = var.admin_password
 }
@@ -46,13 +40,10 @@ module "backend_compute" {
 module "cms_compute" {
   source = "../modules/cms_compute"
 
-  nic_name            = "DevLongReportCMSNIC"
+  environment         = "dev"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = module.network.subnet_id
-  public_ip_name      = "DevLongReportCMSPublicIP"
-  vm_name             = "DevLongReportCMSVM"
-  vm_size             = "Standard_B2s"
   admin_username      = var.admin_username
   admin_password      = var.admin_password
 }
