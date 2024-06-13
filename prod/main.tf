@@ -16,7 +16,7 @@ module "network" {
 }
 
 module "frontend_compute" {
-  source = "../modules/compute"
+  source = "../modules/frontend_compute"
 
   nic_name            = "ProdLongReportFrontendNIC"
   location            = var.location
@@ -30,7 +30,7 @@ module "frontend_compute" {
 }
 
 module "backend_compute" {
-  source = "../modules/compute"
+  source = "../modules/backend_compute"
 
   nic_name            = "ProdLongReportBackendNIC"
   location            = var.location
@@ -44,7 +44,7 @@ module "backend_compute" {
 }
 
 module "cms_compute" {
-  source = "../modules/compute"
+  source = "../modules/cms_compute"
 
   nic_name            = "ProdLongReportCMSNIC"
   location            = var.location

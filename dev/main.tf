@@ -3,14 +3,6 @@ provider "azurerm" {
   skip_provider_registration = true
 }
 
-output "subscription_id" {
-  value = var.subscription_id
-}
-
-output "resource_group_name" {
-  value = var.resource_group_name
-}
-
 module "network" {
   source = "../modules/network"
 
@@ -24,7 +16,7 @@ module "network" {
 }
 
 module "frontend_compute" {
-  source = "../modules/compute"
+  source = "../modules/frontend_compute"
 
   nic_name            = "DevLongReportFrontendNIC"
   location            = var.location
@@ -38,7 +30,7 @@ module "frontend_compute" {
 }
 
 module "backend_compute" {
-  source = "../modules/compute"
+  source = "../modules/backend_compute"
 
   nic_name            = "DevLongReportBackendNIC"
   location            = var.location
@@ -52,7 +44,7 @@ module "backend_compute" {
 }
 
 module "cms_compute" {
-  source = "../modules/compute"
+  source = "../modules/cms_compute"
 
   nic_name            = "DevLongReportCMSNIC"
   location            = var.location
