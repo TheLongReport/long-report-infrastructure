@@ -1,0 +1,57 @@
+name: Import Resources into Terraform State
+
+on:
+  workflow_dispatch:
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.0.9
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ./prod
+
+    - name: Import Virtual Network
+      run: terraform import 'module.network.azurerm_virtual_network.main' '/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/QZNC-TLR-RG/providers/Microsoft.Network/virtualNetworks/ProdLongReportVNet'
+      working-directory: ./prod
+
+    - name: Import Network Security Group
+      run: terraform import 'module.network.azurerm_network_security_group.main' '/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/QZNC-TLR-RG/providers/Microsoft.Network/networkSecurityGroups/ProdLongReportNSG'
+      working-directory: ./prod
+
+    - name: Import Public IP for Backend
+      run: terraform import 'module.backend_compute.azurerm_public_ip.public_ip' '/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/QZNC-TLR-RG/providers/Microsoft.Network/publicIPAddresses/ProdLongReportBackendPublicIP'
+      working-directory: ./prod
+
+    - name: Import Public IP for CMS
+      run: terraform import 'module.cms_compute.azurerm_public_ip.public_ip' '/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/QZNC-TLR-RG/providers/Microsoft.Network/publicIPAddresses/ProdLongReportCMSPublicIP'
+      working-directory: ./prod
+
+    - name: Import Public IP for Frontend
+      run: terraform import 'module.frontend_compute.azurerm_public_ip.public_ip' '/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/QZNC-TLR-RG/providers/Microsoft.Network/publicIPAddresses/ProdLongReportFrontendPublicIP'
+      working-directory: ./prod
+
+    - name: Import Backend VM
+      run: terraform import 'module.backend_compute.azurerm_virtual_machine.vm' '/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/QZNC-TLR-RG/providers/Microsoft.Compute/virtualMachines/ProdLongReportBackendVM'
+      working-directory: ./prod
+
+    - name: Import CMS VM
+      run: terraform import 'module.cms_compute.azurerm_virtual_machine.vm' '/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/QZNC-TLR-RG/providers/Microsoft.Compute/virtualMachines/ProdLongReportCMSVM'
+      working-directory: ./prod
+
+    - name: Import Frontend VM
+      run: terraform import 'module.frontend_compute.azurerm_virtual_machine.vm' '/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/QZNC-TLR-RG/providers/Microsoft.Compute/virtualMachines/ProdLongReportFrontendVM'
+      working-directory: ./prod

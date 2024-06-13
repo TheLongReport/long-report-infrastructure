@@ -1,4 +1,4 @@
-name: Deploy Development Infrastructure
+name: Deploy to Development
 
 on:
   push:
@@ -6,46 +6,60 @@ on:
       - dev
 
 jobs:
-  terraform:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Terraform
+    - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        terraform_version: 1.0.5
+        terraform_version: 1.0.9
 
-    - name: Initialize Terraform
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Terraform Init
       run: terraform init
-      working-directory: ./dev
+      working-directory: ./dev  # Adjust to your directory
 
-    - name: Plan Terraform changes
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-        TF_VAR_admin_username: ${{ secrets.ADMIN_USERNAME }}
-        TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
-      run: terraform plan
-      working-directory: ./dev
+    - name: Check for Existing Resources
+      id: check_resources
+      run: |
+        terraform state list > state_list.txt
+        grep 'module.network.azurerm_virtual_network.main' state_list.txt || echo "missing" > missing_resources.txt
+        grep 'module.network.azurerm_network_security_group.main' state_list.txt || echo "missing" >> missing_resources.txt
+        grep 'module.backend_compute.azurerm_public_ip.public_ip' state_list.txt || echo "missing" >> missing_resources.txt
+        grep 'module.cms_compute.azurerm_public_ip.public_ip' state_list.txt || echo "missing" >> missing_resources.txt
+        grep 'module.frontend_compute.azurerm_public_ip.public_ip' state_list.txt || echo "missing" >> missing_resources.txt
+        grep 'module.backend_compute.azurerm_virtual_machine.vm' state_list.txt || echo "missing" >> missing_resources.txt
+        grep 'module.cms_compute.azurerm_virtual_machine.vm' state_list.txt || echo "missing" >> missing_resources.txt
+        grep 'module.frontend_compute.azurerm_virtual_machine.vm' state_list.txt || echo "missing" >> missing_resources.txt
+      working-directory: ./dev  # Adjust to your directory
 
-    - name: Apply Terraform changes
-      if: github.ref == 'refs/heads/develop'
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-        TF_VAR_admin_username: ${{ secrets.ADMIN_USERNAME }}
-        TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
+    - name: Trigger Import Workflow
+      if: steps.check_resources.outputs.missing
+      uses: actions/github-script@v3
+      with:
+        script: |
+          const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/')
+          github.actions.createWorkflowDispatch({
+            owner,
+            repo,
+            workflow_id: 'import-resources-dev.yml',
+            ref: 'dev'
+          })
+
+    - name: Terraform Apply
       run: terraform apply -auto-approve
-      working-directory: ./dev
+      working-directory: ./dev  # Adjust to your directory
+      env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        TF_VAR_admin_username: ${{ secrets.TF_VAR_admin_username }}
+        TF_VAR_admin_password: ${{ secrets.TF_VAR_admin_password }}
