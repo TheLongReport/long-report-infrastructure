@@ -24,6 +24,8 @@ module "frontend_compute" {
   subnet_id           = module.network.subnet_id
   admin_username      = var.admin_username
   admin_password      = var.admin_password
+  vm_name             = "ProdLongReportFrontendVM"
+  public_ip_name      = "ProdLongReportFrontendPublicIP"
 }
 
 module "backend_compute" {
@@ -35,6 +37,8 @@ module "backend_compute" {
   subnet_id           = module.network.subnet_id
   admin_username      = var.admin_username
   admin_password      = var.admin_password
+  vm_name             = "ProdLongReportBackendVM"
+  public_ip_name      = "ProdLongReportBackendPublicIP"
 }
 
 module "cms_compute" {
@@ -46,4 +50,6 @@ module "cms_compute" {
   subnet_id           = module.network.subnet_id
   admin_username      = var.admin_username
   admin_password      = var.admin_password
+  vm_name             = "ProdLongReportCMSVM"
+  public_ip_name      = "ProdLongReportCMSPublicIP"
 }
